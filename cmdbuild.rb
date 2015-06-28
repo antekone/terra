@@ -48,6 +48,8 @@ class BuildCommand
       puts("Nothing to do.")
       return 1
     end
+
+    0
   end
 
   def do_build(bldname)
@@ -74,37 +76,48 @@ class BuildCommand
     puts("Build running, waiting for completion...")
     finished_steps = []
     reported_steps = []
-    act = build.get_activity(bldname)
 
     loop do
+      sleep(3)
+      act = build.get_activity(bldname)
+
       binfo = build.get_builder_info(bldname)['currentBuilds']
       if binfo.length > 0
-        # We got 'current build'
         binfo = build.get_build_id_info(bldname, binfo[0])
-        steps = binfo["steps"]
-        steps.each_index do |i|
-          step = steps[i]
-          step_name = step["name"]
-          step_text = if step["text"].length > 0
-                        step["text"].join(" / ")
-                      else
-                        step["text"]
-                      end
-          step_finished = step["isFinished"]
-
-          next if not step_finished
-          next if reported_steps.index(i) != nil
-
-          puts("    Step #{i + 1}/#{steps.length + 1} finished: #{step_text} (#{step_name})")
-          reported_steps << i
+        print_binfo_steps(finished_steps, reported_steps, binfo)
+      else
+        # Everything was finished, get last 'cachedBuilds', and print everything as finished
+        binfo = build.get_builder_info(bldname)['cachedBuilds']
+        if binfo.length > 0 and act != 'building'
+          binfo = build.get_build_id_info(bldname, binfo[-1])
+          print_binfo_steps(finished_steps, reported_steps, binfo)
         end
       end
 
       break if act != 'building'
-      sleep(3)
     end
 
     { :bldname => bldname, :status => true }
+  end
+
+  def print_binfo_steps(finished_steps, reported_steps, binfo)
+    steps = binfo["steps"]
+    steps.each_index do |i|
+      step = steps[i]
+      step_name = step["name"]
+      step_text = if step["text"].length > 0
+                    step["text"].join(" / ")
+                  else
+                    step["text"]
+                  end
+      step_finished = step["isFinished"]
+
+      next if not step_finished
+      next if reported_steps.index(i) != nil
+
+      puts("    Step #{i + 1}/#{steps.length} finished: #{step_text} (#{step_name})")
+      reported_steps << i
+    end
   end
 end
 

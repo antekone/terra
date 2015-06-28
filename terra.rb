@@ -50,6 +50,7 @@ def main
       elsif ret.is_a? FalseClass
         puts("")
         puts("Command #{cmd.name} failed.")
+        ret = 255
       end
 
       exit(ret)
