@@ -21,8 +21,7 @@ def wait_for_idle(build, builders)
 end
 
 def main
-  puts("Terra -- product build terraformation tool")
-  puts("(c) MyDataSoftware.com")
+  puts("Terra -- product build terraformation tool v0.2")
   puts("")
 
   options = {}
